@@ -1,0 +1,10 @@
+.Rhistory
+.DS_Store
+*.lyx
+*.lyx~
+*.pdf
+*.tex
+*.log
+*.gz
+figure/
+cache/
