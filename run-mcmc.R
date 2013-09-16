@@ -7,11 +7,12 @@ lu <- function(x) {
   }
 }
 
-metropolis <- function(alpha, gamma, sigma, jump_sd, xb, reps, y, n, sample.alpha=TRUE) {
+metropolis <- function(alpha, gamma, sigma, jump_sd, xb, reps, y, n, t, sample.alpha=TRUE) {
   #rep alpha & gamma values to match the length of the election observations (for likelihood calculations)
   alpha_long <- rep(alpha, reps)
   gamma_long <- rep(gamma, reps)
   #calculate denominator of acceptance ratio with the "old" values of alpha & gamma
+  #browser()
   old <- alpha_long + gamma_long*t
   olde <- 1/(1+exp(old))
   cum.reps <- cumsum(reps)
@@ -62,6 +63,7 @@ run_mcmc <- function(dat1, dat2, reps, alpha0 = 0, sigma_alpha0 = 1, gamma0 = 0,
   XtX <- t(X) %*% X
   stopifnot(dat2$Name == unique(dat2$Name))
   #rename relevant player data
+  #browser()
   y <- dat1$Votes
   t <- dat1$YoB
   n <- dat1$NumBallots
@@ -95,7 +97,6 @@ run_mcmc <- function(dat1, dat2, reps, alpha0 = 0, sigma_alpha0 = 1, gamma0 = 0,
   jump2 <- 1
   A <- 1.1 
   B <- 1.1^(-44/56)
-  
   for (k in 2:n.reps) {
     if (k%%1000==0) cat(k, "\n")
     
@@ -116,13 +117,13 @@ run_mcmc <- function(dat1, dat2, reps, alpha0 = 0, sigma_alpha0 = 1, gamma0 = 0,
     
     xb_int <- X %*% beta_int
     #metropolis step for \alpha
-    stuff <- metropolis(alpha=alpha, gamma=gamma, sigma=sigma_alpha, jump_sd=jump_alpha, xb=xb_int, reps=reps, y=y, n=n)
+    stuff <- metropolis(alpha=alpha, gamma=gamma, sigma=sigma_alpha, jump_sd=jump_alpha, xb=xb_int, reps=reps, y=y, n=n, t=t)
     alpha_keep[k,] <- alpha <- stuff$alpha
     if (tune & k < adapt) jump_alpha <- ifelse(stuff$ratio > 0.44, jump_alpha*A, jump_alpha*B)
     
     xb_slope <- X %*% beta_slope
     #metropolis step for \gamma
-    stuff <- metropolis(alpha=alpha, gamma=gamma, sigma=sigma_gamma, jump_sd=jump_gamma, xb=xb_slope, reps=reps, y=y, n=n, sample.alpha=FALSE)
+    stuff <- metropolis(alpha=alpha, gamma=gamma, sigma=sigma_gamma, jump_sd=jump_gamma, xb=xb_slope, reps=reps, y=y, n=n, t=t, sample.alpha=FALSE)
     gamma_keep[k,] <- gamma <- stuff$gamma
     if (tune & k < adapt) jump_gamma <- ifelse(stuff$ratio > 0.44, jump_gamma*A, jump_gamma*B)
     
@@ -162,8 +163,8 @@ run_mcmc <- function(dat1, dat2, reps, alpha0 = 0, sigma_alpha0 = 1, gamma0 = 0,
     loglik <- sum(y*log(1-stary) + (n-y)*log(stary))
     loglik_keep[k] <- loglik
   }
-  colnames(alpha_keep) <- paste0("alpha", 1:n.players)
-  colnames(gamma_keep) <- paste0("gamma", 1:n.players)
+  colnames(alpha_keep) <- dat2$Name
+  colnames(gamma_keep) <- dat2$Name
   colnames(beta_int_keep) <- paste0("beta_int", 1:n.predictors)
   colnames(beta_slope_keep) <- paste0("beta_slope", 1:n.predictors)
   return(list(alphas=alpha_keep, 

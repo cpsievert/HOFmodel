@@ -1,5 +1,7 @@
 .Rhistory
+.RData
 .DS_Store
+*.Rproj
 *.lyx
 *.lyx~
 *.pdf
@@ -8,3 +10,4 @@
 *.gz
 figure/
 cache/
+.Rproj.user
