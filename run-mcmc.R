@@ -175,3 +175,8 @@ run_mcmc <- function(dat1, dat2, reps, alpha0 = 0, sigma_alpha0 = 1, gamma0 = 0,
               sigma_gammas=sigma_gamma_keep, 
               logliks=loglik_keep))
 }
+
+
+
+
+
